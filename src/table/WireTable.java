@@ -27,9 +27,12 @@ import com.mentor.chs.api.IXAbstractConductor;
 import com.mentor.chs.api.IXAbstractPin;
 import com.mentor.chs.api.IXAdditionalComponent;
 import com.mentor.chs.api.IXCavity;
+import com.mentor.chs.api.IXCavityDetail;
+import com.mentor.chs.api.IXCavitySeal;
 import com.mentor.chs.api.IXConnector;
 import com.mentor.chs.api.IXDiagramObject;
 import com.mentor.chs.api.IXLibraryCavityPlug;
+import com.mentor.chs.api.IXLibraryCavitySeal;
 import com.mentor.chs.api.IXLibraryObject;
 import com.mentor.chs.api.IXObject;
 import com.mentor.chs.api.IXWire;
@@ -49,8 +52,7 @@ import java.util.Set;
  * connector cavities
  * @author davewa
  */
-public class WireTableVersion //implements IXHarnessTable, IXApplicationContextListener 
-{
+public class WireTable implements IXHarnessTable, IXApplicationContextListener {
 
     /**
      * Only work on Connectors
@@ -74,7 +76,7 @@ public class WireTableVersion //implements IXHarnessTable, IXApplicationContextL
         }
         final int rownumb=conn.getPins().size();
         if (conn != null) {
-            final List<IXAbstractConductor> ConnectorWires = new ArrayList<IXAbstractConductor>();
+            final List ConnectorWires = new ArrayList();
         
             Set<IXAbstractPin> Pins = conn.getPins();
             data = new String[500][7];
@@ -82,8 +84,61 @@ public class WireTableVersion //implements IXHarnessTable, IXApplicationContextL
             int i = 0;
             for (IXAbstractPin Cav : Pins) 
             {
-                if (Cav != null) 
+                //this code is for cavity plug
+                IXCavity cavity = (IXCavity) Cav;
+                if (context != null) 
                 {
+                    
+                    for (IXAdditionalComponent ad : cavity.getAdditionalComponents()) {
+                        
+                        String  Spn = ad.getAttribute("SupplierPartNumber");
+                        String pn= ad.getAttribute("PartNumber");
+                        IXLibraryObject libObj = context.getLibrary().getLibraryObject(pn);
+                        if (libObj != null && libObj instanceof IXLibraryCavityPlug) {
+                           
+                            data[i][0] =Cav.getAttribute("Name");
+                            data[i][1] ="";
+                            data[i][2] ="";
+                            data[i][3] ="";
+                            data[i][4] = "";
+                            data[i][5] ="";
+                            data[i][6] =Spn ;           
+                            //data[i][7] = wire.getAttribute("OptionExpression");                   
+                            i++;
+                            ConnectorWires.add(Spn);   
+                        }
+                    }
+                }
+                
+                //this code is for cavity Seal
+               
+                
+                
+                //this is for cavity  with wire
+                if (cavity!= null) 
+                {
+                    final Map<IXCavity,String> cavityMap = new HashMap<IXCavity, String>();
+                    if (context != null) 
+                    {
+
+                        Set<IXCavityDetail> CavityDetails= cavity.getCavityDetails();
+                        for (IXCavityDetail  CavityDetail:CavityDetails) 
+                        {
+                            IXCavitySeal CavitySeal=CavityDetail.getSeal();
+                            if(CavitySeal!=null)
+                            {
+                                
+                                String Spn = CavitySeal.getAttribute("SupplierPartNumber");
+                                String pn= CavitySeal.getAttribute("PartNumber");
+                                IXLibraryObject libObj = context.getLibrary().getLibraryObject(pn);
+                                if (libObj != null && libObj instanceof IXLibraryCavitySeal) {
+                                    cavityMap.put(cavity,pn); 
+                            }   
+
+                            }
+                        }
+                    }
+                    
                     Set<IXAbstractConductor> wires= Cav.getConductors();
                     for(IXAbstractConductor wire: wires)
                     {
@@ -94,8 +149,8 @@ public class WireTableVersion //implements IXHarnessTable, IXApplicationContextL
                             data[i][1] =  wire.getAttribute("Name");
                             data[i][2] = wire.getAttribute("WireColor");
                             data[i][3] =wire.getAttribute("WireCSA");
-                            data[i][4] = wire.getAttribute("");
-                            data[i][5] = wire.getAttribute("");
+                            data[i][4] =wire.getAttribute("");
+                            data[i][5] =cavityMap.get(Cav);
                             data[i][6] = wire.getAttribute("");                  
                             //data[i][7] = wire.getAttribute("OptionExpression");                   
                             i++;

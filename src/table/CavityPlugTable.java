@@ -70,13 +70,15 @@ public class CavityPlugTable //implements IXHarnessTable, IXApplicationContextLi
         if (conn != null) {
             final List<IXCavity> pluggedCavities = new ArrayList<IXCavity>();
             final Map<IXCavity,String> cavityMap = new HashMap<IXCavity, String>();
-            for (IXAbstractPin cav : conn.getPins()) {
+            for (IXAbstractPin cav : conn.getPins()) 
+            {
                 IXCavity cavity = (IXCavity) cav;
                 // The only way to identify  plug is by checkng the additional components
                 // against the Library.
                 // 2010.2 contains a new method on IXCavity called getCavityPlug() which makes
                 // All of this code redundant
-                if (context != null) {
+                if (context != null) 
+                {
                     for (IXAdditionalComponent ad : cavity.getAdditionalComponents()) {
                         String pn = ad.getAttribute("PartNumber");
                         IXLibraryObject libObj = context.getLibrary().getLibraryObject(pn);
